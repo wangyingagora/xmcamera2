@@ -79,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
             //mRtcEngine.setVideoProfile(Constants.VIDEO_PROFILE_480P, false);
             // mRtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
 
-            mRtcEngine.joinChannel_i(null, "test", 0);
+            mRtcEngine.enableVideo();
+            mRtcEngine.joinChannel(null, "test", 0);
             //mRtcEngine.joinChannel(null, "arcore", "ARCore with RtcEngine", 0);
         } catch (Exception ex) {
             Log.e(TAG, "Create engine error: " + ex.toString());
