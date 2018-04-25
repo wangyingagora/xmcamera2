@@ -1,20 +1,30 @@
 package io.agora.xmcamera;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import io.agora.rtc.AgoraRtcEngine;
+import java.util.Arrays;
+
 import io.agora.rtc.Constants;
 import io.agora.rtc.IEventHandler;
-import io.agora.rtc.IRtcEngine;
-import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
 import io.agora.rtc.RtcStats;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = MainActivity.class.getSimpleName();
-    private AgoraRtcEngine mRtcEngine;
+
+    public static final int BASE_VALUE_PERMISSION = 0X0001;
+    public static final int PERMISSION_REQ_ID_RECORD_AUDIO = BASE_VALUE_PERMISSION + 1;
+    public static final int PERMISSION_REQ_ID_CAMERA = BASE_VALUE_PERMISSION + 2;
+    public static final int PERMISSION_REQ_ID_WRITE_EXTERNAL_STORAGE = BASE_VALUE_PERMISSION + 3;
+
+    private RtcEngine mRtcEngine;
     private IEventHandler mEventHandler;
 
     @Override
@@ -22,69 +32,201 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        checkSelfPermissions();
+
         try {
             mEventHandler = new IEventHandler() {
                 @Override
                 public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
-                    Log.e(TAG, "onJoinChannelSuccess");
+                    Log.e(TAG, "agora sdk onJoinChannelSuccess");
                 }
 
                 @Override
                 public void onRejoinChannelSuccess(String channel, int uid, int elapsed) {
-
+                    Log.e(TAG, "agora sdk onRejoinChannelSuccess");
                 }
 
                 @Override
                 public void onWarning(int warn) {
-
+                    Log.e(TAG, "agora sdk onWarning: " + warn);
                 }
 
                 @Override
                 public void onError(int err) {
-                    Log.e(TAG, "code: " + err);
+                    Log.e(TAG, "agora sdk onError: " + err);
                 }
 
                 @Override
                 public void onUserJoined(int uid, int elapsed) {
-
+                    Log.e(TAG, "agora sdk onUserJoined: " + uid);
                 }
 
                 @Override
                 public void onUserOffline(int uid, int reason) {
-
+                    Log.e(TAG, "agora sdk onUserOffline: " + uid + ", reason: " + reason);
                 }
 
                 @Override
                 public void onRtcStats(RtcStats stats) {
-
+                    // Log.e(TAG, "agora sdk onRtcStats: " + stats.toString());
                 }
 
                 @Override
                 public void onConnectionLost() {
-
+                    Log.e(TAG, "agora sdk onConnectionLost");
                 }
 
                 @Override
                 public void onUserMuteVideo(int uid, boolean muted) {
+                    Log.e(TAG, "agora sdk onUserMuteVideo: " + uid + ", muted: " + muted);
+                }
 
+                @Override
+                public void onReceivedVideoData(int uid, byte[] data, int isKeyFrame) {
+                    if (data == null) {
+                        // Log.e(TAG, "agora sdk onReceivedVideoData error");
+                        return;
+                    }
+                    Log.e(TAG, "agora sdk onReceivedVideoData: " + uid + ", size: " + data.length);
+                }
+
+                @Override
+                public void onReceivedAudioData(int uid, byte[] data) {
+                    if (data == null) return;
+                    // Log.e(TAG, "agora sdk onReceivedAudioData: " + uid + "size: " + data.length);
                 }
             };
 
-            mRtcEngine = AgoraRtcEngine.create(this, getString(R.string.private_broadcasting_app_id), mEventHandler);
-            ((AgoraRtcEngine)mRtcEngine).setParameters("{\"rtc.log_filter\": 65535}");
-            //mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING);
-            //mRtcEngine.enableVideo();
-            //mRtcEngine.enableDualStreamMode(true);
-
-            //mRtcEngine.setVideoProfile(Constants.VIDEO_PROFILE_480P, false);
-            // mRtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
-
-            mRtcEngine.enableVideo();
-            mRtcEngine.joinChannel(null, "test", 0);
-            //mRtcEngine.joinChannel(null, "arcore", "ARCore with RtcEngine", 0);
+            mRtcEngine = RtcEngine.create(this, getString(R.string.private_broadcasting_app_id), mEventHandler);
+            mRtcEngine.setParameters_c("{\"rtc.log_filter\": 65535}");
+            int r = mRtcEngine.enableVideo_c();
+            r = mRtcEngine.joinChannel_c(null, "wangyy", 0);
+            mThread.start();
         } catch (Exception ex) {
             Log.e(TAG, "Create engine error: " + ex.toString());
         }
-
     }
+
+    private boolean checkSelfPermissions() {
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, PERMISSION_REQ_ID_WRITE_EXTERNAL_STORAGE) &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO) &&
+                (checkSelfPermission(Manifest.permission.CAMERA, PERMISSION_REQ_ID_CAMERA));
+    }
+
+    protected final boolean checkPermissions(int cRole) {
+        if (cRole == Constants.CLIENT_ROLE_AUDIENCE) {
+            return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, PERMISSION_REQ_ID_WRITE_EXTERNAL_STORAGE);
+        }
+
+        return checkSelfPermissions();
+    }
+
+    public boolean checkSelfPermission(String permission, int requestCode) {
+        Log.d(TAG, "checkSelfPermission " + permission + " " + requestCode);
+        if (ContextCompat.checkSelfPermission(this,
+                permission)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{permission},
+                    requestCode);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult " + requestCode + " " + Arrays.toString(permissions) + " " + Arrays.toString(grantResults));
+        switch (requestCode) {
+            case PERMISSION_REQ_ID_WRITE_EXTERNAL_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    finish();
+                }
+                break;
+            }
+            case PERMISSION_REQ_ID_RECORD_AUDIO: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    checkSelfPermission(Manifest.permission.CAMERA, PERMISSION_REQ_ID_CAMERA);
+                } else {
+                    // showLongToast("No permission for " + Manifest.permission.RECORD_AUDIO);
+                }
+                break;
+            }
+            case PERMISSION_REQ_ID_CAMERA: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    // showLongToast("No permission for " + Manifest.permission.CAMERA);
+                }
+                break;
+            }
+        }
+    }
+
+    private Thread mThread = new Thread() {
+        @Override
+        public void run() {
+            byte[] videoData = new byte[1024];
+            for (int i = 0; i < videoData.length; ++i) {
+                videoData[i] = '1';
+            }
+            byte[] audioData = new byte[128];
+            for (int i = 0; i < audioData.length; ++i) {
+                audioData[i] = '1';
+            }
+            /*
+            for (int i = 0; i < 8; i++) {
+                mRtcEngine.sendVideoData_c(videoData, 0);
+                mRtcEngine.sendAudioData_c(audioData);
+                Log.e (TAG, "sdk Audio Bitrate: " + mRtcEngine.getAudioRecommendedBitrate_c() + ", Video Bitrate: " + mRtcEngine.getVideoRecommendedBitrate_c());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Log.e(TAG, ex.toString());
+                }
+            }
+
+            //	agora_rtc_disable_video ();
+            Log.e (TAG, "sdk Start sending non-Key video frame...");
+
+            for (int i = 0; i < 8; i++) {
+                mRtcEngine.sendVideoData_c(videoData, 0);
+                mRtcEngine.sendAudioData_c(audioData);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    Log.e(TAG, ex.toString());
+                }
+            }
+
+           // agora_rtc_disable_audio ();
+           // agora_rtc_enable_video ();
+
+            Log.e (TAG, "sdk Start sending non-Key video frame...");
+
+            for (int i = 0; i < 8; i++) {
+                mRtcEngine.sendVideoData_c(videoData, 0);
+                mRtcEngine.sendAudioData_c(audioData);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    Log.e(TAG, ex.toString());
+                }
+            }
+            */
+
+            for (;;) {
+                mRtcEngine.sendVideoData_c(videoData, 1);
+                // mRtcEngine.sendAudioData_c(audioData);
+                // Log.e (TAG, "agora sdk Audio Bitrate: " + mRtcEngine.getAudioRecommendedBitrate_c() + ", Video Bitrate: " + mRtcEngine.getVideoRecommendedBitrate_c());
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    Log.e(TAG, ex.toString());
+                }
+            }
+        }
+    };
 }
