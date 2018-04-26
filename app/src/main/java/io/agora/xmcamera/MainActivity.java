@@ -38,62 +38,62 @@ public class MainActivity extends AppCompatActivity {
             mEventHandler = new IEventHandler() {
                 @Override
                 public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
-                    Log.e(TAG, "agora sdk onJoinChannelSuccess");
+                    Log.e(TAG, "IEventHandler onJoinChannelSuccess");
                 }
 
                 @Override
                 public void onRejoinChannelSuccess(String channel, int uid, int elapsed) {
-                    Log.e(TAG, "agora sdk onRejoinChannelSuccess");
+                    Log.e(TAG, "IEventHandler onRejoinChannelSuccess");
                 }
 
                 @Override
                 public void onWarning(int warn) {
-                    Log.e(TAG, "agora sdk onWarning: " + warn);
+                    Log.e(TAG, "IEventHandler onWarning: " + warn);
                 }
 
                 @Override
                 public void onError(int err) {
-                    Log.e(TAG, "agora sdk onError: " + err);
+                    Log.e(TAG, "IEventHandler onError: " + err);
                 }
 
                 @Override
                 public void onUserJoined(int uid, int elapsed) {
-                    Log.e(TAG, "agora sdk onUserJoined: " + uid);
+                    Log.e(TAG, "IEventHandler onUserJoined: " + uid);
                 }
 
                 @Override
                 public void onUserOffline(int uid, int reason) {
-                    Log.e(TAG, "agora sdk onUserOffline: " + uid + ", reason: " + reason);
+                    Log.e(TAG, "IEventHandler onUserOffline: " + uid + ", reason: " + reason);
                 }
 
                 @Override
                 public void onRtcStats(RtcStats stats) {
-                    // Log.e(TAG, "agora sdk onRtcStats: " + stats.toString());
+                    // Log.e(TAG, "IEventHandler onRtcStats: " + stats.toString());
                 }
 
                 @Override
                 public void onConnectionLost() {
-                    Log.e(TAG, "agora sdk onConnectionLost");
+                    Log.e(TAG, "IEventHandler onConnectionLost");
                 }
 
                 @Override
                 public void onUserMuteVideo(int uid, boolean muted) {
-                    Log.e(TAG, "agora sdk onUserMuteVideo: " + uid + ", muted: " + muted);
+                    Log.e(TAG, "IEventHandler onUserMuteVideo: " + uid + ", muted: " + muted);
                 }
 
                 @Override
                 public void onReceivedVideoData(int uid, byte[] data, int isKeyFrame) {
                     if (data == null) {
-                        // Log.e(TAG, "agora sdk onReceivedVideoData error");
+                        // Log.e(TAG, "IEventHandler onReceivedVideoData error");
                         return;
                     }
-                    Log.e(TAG, "agora sdk onReceivedVideoData: " + uid + ", size: " + data.length);
+                    Log.e(TAG, "IEventHandler onReceivedVideoData: " + uid + ", size: " + data.length);
                 }
 
                 @Override
                 public void onReceivedAudioData(int uid, byte[] data) {
                     if (data == null) return;
-                    // Log.e(TAG, "agora sdk onReceivedAudioData: " + uid + "size: " + data.length);
+                    Log.e(TAG, "IEventHandler onReceivedAudioData: " + uid + "size: " + data.length);
                 }
             };
 
@@ -170,11 +170,11 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             byte[] videoData = new byte[1024];
             for (int i = 0; i < videoData.length; ++i) {
-                videoData[i] = '1';
+                videoData[i] = 1;
             }
             byte[] audioData = new byte[128];
             for (int i = 0; i < audioData.length; ++i) {
-                audioData[i] = '1';
+                audioData[i] = 1;
             }
             /*
             for (int i = 0; i < 8; i++) {
