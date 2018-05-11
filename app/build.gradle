@@ -27,7 +27,7 @@ android {
     }
     externalNativeBuild {
         cmake {
-            path "../../media_sdk2/proj.cmake/CMakeLists.txt"
+            path "../../media_sdk3/proj.cmake/CMakeLists.txt"
         }
     }
 
