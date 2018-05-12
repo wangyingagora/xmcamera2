@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
             for (;;) {
                 mRtcEngine.sendVideoData_c(videoData, 1);
-                // mRtcEngine.sendAudioData_c(audioData);
+                mRtcEngine.sendAudioData_c(audioData);
                 // Log.e (TAG, "agora sdk Audio Bitrate: " + mRtcEngine.getAudioRecommendedBitrate_c() + ", Video Bitrate: " + mRtcEngine.getVideoRecommendedBitrate_c());
                 try {
                     Thread.sleep(100);
